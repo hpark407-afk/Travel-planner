@@ -158,7 +158,7 @@ input[type=date],input[type=time]{min-height:42px}
 .fsi-v{font-size:15px;font-weight:700;color:#085041}
 
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px}
-table{width:100%;border-collapse:collapse;min-width:880px}
+table{width:100%;border-collapse:collapse;min-width:700px}
 thead tr{background:var(--bg)}
 th{padding:9px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border2);white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
 td{padding:9px;border-bottom:1px solid var(--border);font-size:12.5px;vertical-align:middle}
@@ -419,6 +419,7 @@ tr:last-child td{border-bottom:none}
         <div class="form-actions"><button class="btn" onclick="toggleForm('expForm')">취소</button><button class="btn btn-p" onclick="saveExpense()">저장</button></div>
       </div>
       <div class="fil-bar">
+        <div class="fil-grp"><span class="fil-lbl">날짜</span><select class="fil-sel" id="fl_dt" onchange="applyFilter()"><option value="">전체</option></select></div>
         <div class="fil-grp"><span class="fil-lbl">카테고리</span><select class="fil-sel" id="fl_cat" onchange="applyFilter()"><option value="">전체</option><option>교통</option><option>숙소</option><option>식사</option><option>관광</option><option>기타</option></select></div>
         <div class="fil-grp"><span class="fil-lbl">국가</span><select class="fil-sel" id="fl_co" onchange="applyFilter()"><option value="">전체</option></select></div>
         <div class="fil-grp"><span class="fil-lbl">도시</span><select class="fil-sel" id="fl_ci" onchange="applyFilter()"><option value="">전체</option></select></div>
@@ -428,7 +429,7 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="fil-sum" id="filSum"><div class="fil-sum-title" id="filSumTitle"></div><div class="fil-sum-row" id="filSumRow"></div></div>
       <div class="tw">
-        <table><thead><tr><th>#</th><th>내용</th><th>국가</th><th>도시</th><th>카테고리</th><th>결제일</th><th style="text-align:right">원화 (1인/총액)</th><th style="text-align:right">외화 (1인/총액)</th><th>인원</th><th>예약</th><th>결제자</th><th>정산</th><th>비고</th><th></th></tr></thead>
+        <table><thead><tr><th style="width:28px">#</th><th style="min-width:100px">내용</th><th style="min-width:80px">국가·도시</th><th style="width:64px">카테고리</th><th style="width:56px">결제일</th><th style="text-align:right;min-width:90px">원화(1인)</th><th style="text-align:right;min-width:80px">외화(1인)</th><th style="width:40px;text-align:center">인원</th><th style="width:44px">예약</th><th style="width:52px">결제자</th><th style="width:52px">정산</th><th style="min-width:60px">비고</th><th style="width:48px"></th></tr></thead>
         <tbody id="expBody"></tbody></table>
         <div class="exp-cards" id="expCards"></div>
         <div class="empty" id="expEmpty">경비를 추가해보세요</div>
@@ -816,11 +817,11 @@ function editExpense(id){
     <div class="fc"><div class="fl">비고</div><input id="ee_nt" value="${esc(e.note)}"/></div>`,
   ()=>{e.desc=document.getElementById('ee_d').value.trim();e.country=document.getElementById('ee_co').value.trim();e.city=document.getElementById('ee_ci').value.trim();e.cat=document.getElementById('ee_cat').value;e.date=document.getElementById('ee_dt').value;e.payer=document.getElementById('ee_py').value.trim();e.booked=document.getElementById('ee_bk').value;e.settled=document.getElementById('ee_st').value;const k=document.getElementById('ee_krw').value,fw=document.getElementById('ee_fw').value;e.krw=k!==''?parseFloat(k):null;e.foreign=fw!==''?parseFloat(fw):null;e.currency=document.getElementById('ee_cur').value;e.note=document.getElementById('ee_nt').value.trim();sv();renderExp()});
 }
-function getFiltered(){const fc=document.getElementById('fl_cat').value,fco=document.getElementById('fl_co').value,fci=document.getElementById('fl_ci').value,fp=document.getElementById('fl_py').value,fs=document.getElementById('fl_st').value;return S.expenses.filter(e=>(!fc||e.cat===fc)&&(!fco||e.country===fco)&&(!fci||e.city===fci)&&(!fp||e.payer===fp)&&(!fs||e.settled===fs))}
-function isFiltered(){return['fl_cat','fl_co','fl_ci','fl_py','fl_st'].some(id=>document.getElementById(id).value!=='')}
+function getFiltered(){const fc=document.getElementById('fl_cat').value,fco=document.getElementById('fl_co').value,fci=document.getElementById('fl_ci').value,fp=document.getElementById('fl_py').value,fs=document.getElementById('fl_st').value,fd=document.getElementById('fl_dt').value;return S.expenses.filter(e=>(!fc||e.cat===fc)&&(!fco||e.country===fco)&&(!fci||e.city===fci)&&(!fp||e.payer===fp)&&(!fs||e.settled===fs)&&(!fd||e.date===fd))}
+function isFiltered(){return['fl_cat','fl_co','fl_ci','fl_py','fl_st','fl_dt'].some(id=>document.getElementById(id).value!=='')}
 function sumExp(list){const krw=list.reduce((s,e)=>s+(e.krw||0),0);const fw={};list.forEach(e=>{if(e.foreign!=null){if(!fw[e.currency])fw[e.currency]=0;fw[e.currency]+=e.foreign;}});return{krw,fw}}
 function applyFilter(){renderExp()}
-function clearFilter(){['fl_cat','fl_co','fl_ci','fl_py','fl_st'].forEach(id=>document.getElementById(id).value='');renderExp()}
+function clearFilter(){['fl_cat','fl_co','fl_ci','fl_py','fl_st','fl_dt'].forEach(id=>document.getElementById(id).value='');renderExp()}
 
 function saveLink(){
   const name=document.getElementById('lName').value.trim(),url=document.getElementById('lUrl').value.trim();if(!name||!url)return;
@@ -986,10 +987,12 @@ function renderExp(){
   const cos=[...new Set(S.expenses.map(e=>e.country).filter(Boolean))];
   const cis=[...new Set(S.expenses.map(e=>e.city).filter(Boolean))];
   const pys=[...new Set(S.expenses.map(e=>e.payer).filter(Boolean))];
-  const pco=document.getElementById('fl_co').value,pci=document.getElementById('fl_ci').value,ppy=document.getElementById('fl_py').value;
+  const dts=[...new Set(S.expenses.map(e=>e.date).filter(Boolean))].sort();
+  const pco=document.getElementById('fl_co').value,pci=document.getElementById('fl_ci').value,ppy=document.getElementById('fl_py').value,pdt=document.getElementById('fl_dt').value;
   document.getElementById('fl_co').innerHTML='<option value="">전체</option>'+cos.map(c=>`<option${c===pco?' selected':''}>${esc(c)}</option>`).join('');
   document.getElementById('fl_ci').innerHTML='<option value="">전체</option>'+cis.map(c=>`<option${c===pci?' selected':''}>${esc(c)}</option>`).join('');
   document.getElementById('fl_py').innerHTML='<option value="">전체</option>'+pys.map(p=>`<option${p===ppy?' selected':''}>${esc(p)}</option>`).join('');
+  document.getElementById('fl_dt').innerHTML='<option value="">전체</option>'+dts.map(d=>`<option value="${d}"${d===pdt?' selected':''}>${fSh(d)} (${getDow(d)})</option>`).join('');
   const flt=getFiltered();
   const body=document.getElementById('expBody'),cards=document.getElementById('expCards'),em=document.getElementById('expEmpty');
   if(!flt.length){body.innerHTML='';cards.innerHTML='';em.style.display='block';}
@@ -997,17 +1000,17 @@ function renderExp(){
     em.style.display='none';
     body.innerHTML=flt.map((e,i)=>`<tr>
       <td style="color:var(--text3)">${i+1}</td>
-      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.desc)}</td>
-      <td>${esc(e.country)||'-'}</td><td>${esc(e.city)||'-'}</td>
+      <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px">${esc(e.desc)}</td>
+      <td style="font-size:11.5px">${[esc(e.country),esc(e.city)].filter(Boolean).join('·')||'-'}</td>
       <td><span class="cat-badge cat-${e.cat}">${CAT_EM[e.cat]||''} ${e.cat}</span></td>
       <td>${e.date?fD(e.date):'-'}</td>
-      <td style="text-align:right">
-        ${e.krw!=null?`<div class="per-amt">${fmtKRW(e.krw)}</div>${(e.people||1)>1?`<div class="total-amt">총 ${fmtKRW(e.krwTotal||e.krw*(e.people||1))}</div>`:''}`:'- '}
+      <td style="text-align:right;font-size:12px">
+        ${e.krw!=null?`<b>${fmtKRW(e.krw)}</b>${(e.people||1)>1?`<br><span style="font-size:10px;color:var(--text2);text-decoration:line-through">총${fmtKRW(e.krwTotal||e.krw*(e.people||1))}</span>`:''}`:'−'}
       </td>
-      <td style="text-align:right">
-        ${e.foreign!=null?`<div class="per-amt">${fmtFw(e.foreign,e.currency)}</div>${(e.people||1)>1?`<div class="total-amt">총 ${fmtFw(e.foreignTotal||Math.round(e.foreign*(e.people||1)*100)/100,e.currency)}</div>`:''}`:'- '}
+      <td style="text-align:right;font-size:12px">
+        ${e.foreign!=null?`<b>${fmtFw(e.foreign,e.currency)}</b>${(e.people||1)>1?`<br><span style="font-size:10px;color:var(--text2);text-decoration:line-through">총${fmtFw(e.foreignTotal||Math.round(e.foreign*(e.people||1)*100)/100,e.currency)}</span>`:''}`:'−'}
       </td>
-      <td style="text-align:center">${(e.people||1)>1?`<span class="per-person-badge">${e.people}명</span>`:'1명'}</td>
+      <td style="text-align:center">${(e.people||1)>1?`<span class="per-person-badge">${e.people}명</span>`:'<span style="font-size:11px;color:var(--text2)">1명</span>'}</td>
       <td><span class="${e.booked==='Y'?'bool-y':'bool-n'}">${e.booked==='Y'?'예약':'미예약'}</span></td>
       <td>${esc(e.payer)||'-'}</td>
       <td><span class="${e.settled==='Y'?'bool-y':'bool-n'}">${e.settled==='Y'?'완료':'미정산'}</span></td>
@@ -1037,8 +1040,8 @@ function renderExp(){
   if(isFiltered()&&flt.length){
     const {krw,fw}=sumExp(flt);
     const lb=[];
-    const fc=document.getElementById('fl_cat').value,fco=document.getElementById('fl_co').value,fci=document.getElementById('fl_ci').value,fp=document.getElementById('fl_py').value,fs=document.getElementById('fl_st').value;
-    if(fc)lb.push(fc);if(fco)lb.push(fco);if(fci)lb.push(fci);if(fp)lb.push(fp+' 결제');if(fs)lb.push(fs==='Y'?'정산완료':'미정산');
+    const fc=document.getElementById('fl_cat').value,fco=document.getElementById('fl_co').value,fci=document.getElementById('fl_ci').value,fp=document.getElementById('fl_py').value,fs=document.getElementById('fl_st').value,fd=document.getElementById('fl_dt').value;
+    if(fd)lb.push(fSh(fd)+' ('+getDow(fd)+')');if(fc)lb.push(fc);if(fco)lb.push(fco);if(fci)lb.push(fci);if(fp)lb.push(fp+' 결제');if(fs)lb.push(fs==='Y'?'정산완료':'미정산');
     document.getElementById('filSumTitle').textContent='🔍 '+lb.join(' · ')+' ('+flt.length+'건, 1인 기준)';
     document.getElementById('filSumRow').innerHTML=`<div class="fsi"><div class="fsi-l">원화 합계 (1인)</div><div class="fsi-v">${fmtKRW(krw)}</div></div>`+Object.entries(fw).map(([c,a])=>`<div class="fsi"><div class="fsi-l">외화 (${c}, 1인)</div><div class="fsi-v">${a.toLocaleString()} ${c}</div></div>`).join('');
     fe.classList.add('show');
